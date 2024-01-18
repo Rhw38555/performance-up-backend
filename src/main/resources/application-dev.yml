@@ -1,0 +1,31 @@
+spring:
+    rabbitmq:
+        host: localhost
+        port: 5672
+        username: root
+        password: root
+    datasource:
+        url: jdbc:mysql://localhost:3306/board?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+        username: root
+        password: 1234
+        driver-class-name: com.mysql.cj.jdbc.Driver
+    jpa:
+        hibernate:
+            ddl-auto: create
+        show-sql: true
+        properties:
+            hibernate:
+                format_sql: true
+                dialect: org.hibernate.dialect.MySQLDialect
+                default_batch_fetch_size: 100
+    cache:
+        type: redis
+        redis:
+            host: localhost
+            port: 6379
+
+rabbitmq:
+    like:
+        exchange: like-exchange
+        queue: like-queue
+        routing-key: like.routing
