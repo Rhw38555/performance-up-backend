@@ -5,6 +5,8 @@ import org.springframework.web.bind.annotation.RequestParam
 
 data class PostSearchRequest(
     @RequestParam
+    val id: Long?,
+    @RequestParam
     val title: String?,
     @RequestParam
     val createdBy: String?,
@@ -13,6 +15,7 @@ data class PostSearchRequest(
 )
 
 fun PostSearchRequest.toDto() = PostSearchRequestDto(
+    id = id,
     title = title,
     createdBy = createdBy,
     tag = tag,

@@ -1,13 +1,15 @@
 package com.rhw.boardkopring.service
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.rhw.boardkopring.repository.PostRepository
 import com.rhw.boardkopring.exception.PostNotDeletableException
 import com.rhw.boardkopring.exception.PostNotFoundException
 import com.rhw.boardkopring.repository.TagRepository
 import com.rhw.boardkopring.service.dto.*
 import com.rhw.boardkopring.util.RedisUtil
-import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Slice
+import org.springframework.data.domain.SliceImpl
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -19,6 +21,7 @@ class PostService(
     private val likeService: LikeService,
     private val tagRepository: TagRepository,
     private val redisUtil: RedisUtil,
+    private val objectMapper: ObjectMapper,
 ) {
     @Transactional
     fun createPost(requestDto: PostCreateRequestDto): Long {
@@ -51,13 +54,31 @@ class PostService(
             ?: throw PostNotFoundException()
     }
 
-    fun findPageBy(pageRequest: Pageable, postSearchRequestDto: PostSearchRequestDto): Page<PostSummaryResponseDto> {
+    fun findPageBy(pageRequest: Pageable, postSearchRequestDto: PostSearchRequestDto): Slice<PostSummaryResponseDto> {
         postSearchRequestDto.tag?.let {
             return tagRepository.findPageBy(pageRequest, it).toSummaryResponseDto(likeService::countLike)
         }
-        return postRepository.findPageBy(pageRequest, postSearchRequestDto)
-            .toSummaryResponseDto(likeService::countLike, redisUtil::getData, redisUtil::getLikeCountKey)
+
+        if(postSearchRequestDto.id == null){
+            return postRepository.findPageByDefault(pageRequest, postSearchRequestDto)
+                .toSummaryResponseDto(likeService::countLike, redisUtil::getData, redisUtil::getLikeCountKey)
+        }
+
+        val redisPostKey = redisUtil.getPostIdCountKey(postSearchRequestDto.id)
+        if (redisUtil.getData(redisPostKey) == null) {
+            val result = postRepository.findPageByNoOffset(pageRequest, postSearchRequestDto)
+                .toSummaryResponseDto(likeService::countLike, redisUtil::getData, redisUtil::getLikeCountKey)
+            redisUtil.setData(redisPostKey, objectMapper.writeValueAsString(result.content))
+            return result
+        }
+
+        val redisDataList = redisUtil.getNotNullData(redisPostKey)
+        val result: List<PostSummaryResponseDto> = objectMapper.readValue(redisDataList, objectMapper.typeFactory.constructCollectionType(List::class.java, PostSummaryResponseDto::class.java))
+
+        val hasNext = result.size > pageRequest.pageSize
+        return SliceImpl(result, pageRequest, hasNext)
     }
+
 
     private fun convertToLong(value: Any?): Long? {
         return when (value) {

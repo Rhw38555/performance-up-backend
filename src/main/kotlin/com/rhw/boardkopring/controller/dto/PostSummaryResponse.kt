@@ -1,8 +1,8 @@
 package com.rhw.boardkopring.controller.dto
 
 import com.rhw.boardkopring.service.dto.PostSummaryResponseDto
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Slice
+import org.springframework.data.domain.SliceImpl
 
 data class PostSummaryResponse(
     val id: Long,
@@ -13,10 +13,10 @@ data class PostSummaryResponse(
     val likeCount: Long = 0,
 )
 
-fun Page<PostSummaryResponseDto>.toResponse() = PageImpl(
+fun Slice<PostSummaryResponseDto>.toResponse() = SliceImpl(
     content.map { it.toResponse() },
     pageable,
-    totalElements
+    hasNext(),
 )
 
 fun PostSummaryResponseDto.toResponse() = PostSummaryResponse(

@@ -1,8 +1,10 @@
 package com.rhw.boardkopring.service.dto
 
 import com.rhw.boardkopring.domain.Post
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Slice
+import org.springframework.data.domain.SliceImpl
+import java.io.Serializable
+
 
 data class PostSummaryResponseDto(
     val id: Long,
@@ -11,9 +13,9 @@ data class PostSummaryResponseDto(
     val createdAt: String,
     val firstTag: String? = null,
     val likeCount: Long = 0,
-)
+): Serializable
 
-fun Page<Post>.toSummaryResponseDto(countLike: (Long) -> Long, getData: (String) -> Any?, getLikeCountKey: (Long) -> String) = PageImpl(
+fun Slice<Post>.toSummaryResponseDto(countLike: (Long) -> Long, getData: (String) -> Any?, getLikeCountKey: (Long) -> String) = SliceImpl(
     content.map {
         // redis cache 조회
         val cacheCount = getData(getLikeCountKey(it.id).toString())
@@ -24,7 +26,7 @@ fun Page<Post>.toSummaryResponseDto(countLike: (Long) -> Long, getData: (String)
         }
     },
     pageable,
-    totalElements,
+    hasNext(),
 )
 
 fun Post.toSummaryResponseDtoByCache(likeCount: Long) = PostSummaryResponseDto(

@@ -2,8 +2,8 @@ package com.rhw.boardkopring.controller
 
 import com.rhw.boardkopring.controller.dto.*
 import com.rhw.boardkopring.service.PostService
-import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Slice
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import java.time.LocalDateTime
 
 @RestController
 class PostController(
@@ -52,7 +51,8 @@ class PostController(
     fun getPost(
         pageable: Pageable,
         postSearchRequest: PostSearchRequest
-    ): Page<PostSummaryResponse> {
+//    ): Page<PostSummaryResponse> {
+    ): Slice<PostSummaryResponse> {
         return postService.findPageBy(pageable, postSearchRequest.toDto()).toResponse()
     }
 

@@ -1,4 +1,9 @@
 spring:
+    rabbitmq:
+        host: localhost
+        port: 5672
+        username: root
+        password: root
     datasource:
         url: jdbc:h2:mem:test
         username: sa
@@ -17,3 +22,9 @@ spring:
         redis:
             host: localhost
             port: 6379
+
+rabbitmq:
+    like:
+        exchange: like-exchange
+        queue: like-queue
+        routing-key: like.routing
